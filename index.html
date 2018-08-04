@@ -3,16 +3,24 @@
 <script>
 
     // Variables
-    velocityX = velocityY = 0;
+    let cvs, ctx;
 
-    snakeX = snakeY = 10;
-    appleX = appleY = 15;
+    let velocityX = 0;
+    let velocityY = 0;
 
-    tileSize = 40;
-    tileCount = 20;
+    let snakeX = 10;
+    let snakeY = 10;
 
-    tailSize = 5;
-    tail = [];
+    let appleX = 15;
+    let appleY = 15;
+
+    let tileSize = 40;
+    let tileCount = 20;
+
+    let tailSize = 5;
+    let tail = [];
+
+    let direction, previousDirection;
 
     window.onload = () => {
         cvs = document.getElementById("cvs");
@@ -25,14 +33,36 @@
     }
 
     function keyPress(e) {
-        // Change direction - Disallow the opposite direction
-        if (e.keyCode === 37 && !(velocityX === 1 && velocityY === 0)) { velocityX = -1; velocityY = 0; };
-        if (e.keyCode === 38 && !(velocityX === 0 && velocityY === 1)) { velocityX = 0; velocityY = -1; };
-        if (e.keyCode === 39 && !(velocityX === -1 && velocityY === 0)) { velocityX = 1; velocityY = 0; };
-        if (e.keyCode === 40 && !(velocityX === 0 && velocityY === -1)) { velocityX = 0; velocityY = 1; };
+        // Change direction only if arrow keys are pressed
+        if (e.keyCode >= 37 && e.keyCode <= 40) {
+            // Allows values between 0 and 3
+            direction = e.keyCode % 37;
+        }
     };
 
     function draw() {
+        // Allow change of direction only if 
+        // (1) at the beginning of the game or
+        // (2a) the new direction is not the
+        // same as the previous one and
+        // (2b) is not the exact opposite direction
+        // (that would result in a 180 degree turn)
+        if (previousDirection === undefined
+            || (previousDirection !== direction
+                && previousDirection !== (direction + 2) % 4)) {
+
+            // Save the valid direction to the history
+            previousDirection = direction;
+
+            // Change the velocity
+            switch (direction) {
+                case 0: velocityX = -1; velocityY = 0; break;
+                case 1: velocityX = 0; velocityY = -1; break;
+                case 2: velocityX = 1; velocityY = 0; break;
+                case 3: velocityX = 0; velocityY = 1; break;
+            }
+        }
+
         // Move
         snakeX += velocityX;
         snakeY += velocityY;
@@ -43,7 +73,7 @@
         if (snakeY > tileCount - 1) snakeY = 0;
         if (snakeY < 0) snakeY = tileCount - 1;
 
-        // Draw bg
+        // Draw the background
         ctx.fillStyle = "black";
         ctx.fillRect(0, 0, cvs.width, cvs.height);
 
