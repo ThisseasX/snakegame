@@ -1,0 +1,83 @@
+<canvas id="cvs" />
+
+<script>
+
+    // Variables
+    velocityX = velocityY = 0;
+
+    snakeX = snakeY = 10;
+    appleX = appleY = 15;
+
+    tileSize = 40;
+    tileCount = 20;
+
+    tailSize = 5;
+    tail = [];
+
+    window.onload = () => {
+        cvs = document.getElementById("cvs");
+        ctx = cvs.getContext("2d");
+        cvs.width = cvs.height = tileSize * tileCount + 2; // 2 pixels margin
+
+        document.addEventListener("keydown", keyPress);
+        // Set Framerate - 15 frames per 1000 milliseconds
+        setInterval(draw, 1000 / 15);
+    }
+
+    function keyPress(e) {
+        // Change direction - Disallow the opposite direction
+        if (e.keyCode === 37 && !(velocityX === 1 && velocityY === 0)) { velocityX = -1; velocityY = 0; };
+        if (e.keyCode === 38 && !(velocityX === 0 && velocityY === 1)) { velocityX = 0; velocityY = -1; };
+        if (e.keyCode === 39 && !(velocityX === -1 && velocityY === 0)) { velocityX = 1; velocityY = 0; };
+        if (e.keyCode === 40 && !(velocityX === 0 && velocityY === -1)) { velocityX = 0; velocityY = 1; };
+    };
+
+    function draw() {
+        // Move
+        snakeX += velocityX;
+        snakeY += velocityY;
+
+        // Wrap when offscreen
+        if (snakeX > tileCount - 1) snakeX = 0;
+        if (snakeX < 0) snakeX = tileCount - 1;
+        if (snakeY > tileCount - 1) snakeY = 0;
+        if (snakeY < 0) snakeY = tileCount - 1;
+
+        // Draw bg
+        ctx.fillStyle = "black";
+        ctx.fillRect(0, 0, cvs.width, cvs.height);
+
+        // Draw all pieces of the tail
+        for (let i = 0; i < tail.length; i++) {
+            ctx.fillStyle = "lime";
+            ctx.fillRect(
+                // 2 pixels margin
+                tail[i].x * tileSize + 2,
+                tail[i].y * tileSize + 2,
+                tileSize - 2,
+                tileSize - 2
+            );
+            // Collision with tail - Reset to size 5
+            if (snakeX === tail[i].x && snakeY === tail[i].y) tailSize = 5;
+        }
+
+        // Add current position to the tail as the last element
+        tail.push({ x: snakeX, y: snakeY });
+        // Remove the tail's first element if longer than specified
+        while (tail.length > tailSize) tail.shift();
+
+        // Draw the apple
+        ctx.fillStyle = "red";
+        ctx.fillRect(appleX * tileSize + 2, appleY * tileSize + 2, tileSize - 2, tileSize - 2);
+
+        // Collision with apple
+        if (snakeX === appleX && snakeY === appleY) {
+            // Increase tail size by 1
+            tailSize++;
+            // Spawn next apple on a random tile
+            appleX = Math.floor(Math.random() * tileCount);
+            appleY = Math.floor(Math.random() * tileCount);
+        }
+    };
+
+</script>
